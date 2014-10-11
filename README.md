@@ -87,6 +87,13 @@ The three component classes may be subclassed with default containers. The follo
 
 Also, URLView may be subclassed with custom javascript/jquery loading strings.
 
+Notes
+=====
+
+If you find the use of placeholder strings like "{{ mashup }}" uncouth, you can redifine them in a single line in views.py.
+
+django-mashup will be released to PyPI once it has reached a stable version.
+
 Getting Involved
 ================
 
