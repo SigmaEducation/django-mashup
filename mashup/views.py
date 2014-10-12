@@ -106,5 +106,7 @@ class ViewView(MashupView):
 
     def dispatch(self, request):
         response = self.content.as_view()(request)
+        if hasattr(response, "render"):
+            response.render()
         response.content = self.content_containment(response.content)
         return response
