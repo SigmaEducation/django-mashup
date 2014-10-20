@@ -1,20 +1,44 @@
 import string
 import random
+from itertools import zip_longest
 
 from django.views.generic import View
 from django.http import HttpResponse
 
 TOKEN_LENGTH = 20
-
+CONTENT_SUB_STRING = "{{ mashup }}"
+ENCODING_METHOD = 'utf-8'
 
 class Mashup(View):
 
+    containers = ()
+    views = ()
+    
+    encoding_method = ENCODING_METHOD
+    content_sub_string = CONTENT_SUB_STRING
+
     def dispatch(self, request, *args, **kwargs):
         response = b""
-        for view in self.views:
-            response += view.dispatch(request, *args, **kwargs).content
+
+        request_method = request.method.lower()
+
+        these_containers = getattr(self, request_method + "_containers") if request_method + "_containers" in dir(self) else self.containers
+        these_views = getattr(self, request_method + "_views") if request_method + "_views" in dir(self) else self.views
+
+        for view, container in zip_longest(these_views, these_containers, fillvalue=None):
+            this_response = view.dispatch(request, *args, **kwargs).content
+            if container:
+                this_response = bytes(container, 'utf-8').replace(self.content_sub_string_bytes, this_response)
+            response += this_response
 
         return HttpResponse(response)
+    
+    @property
+    def content_sub_string_bytes(self):
+        if not hasattr(self, "_content_sub_string_bytes"):
+            self._content_sub_string_bytes = bytes(self.content_sub_string, self.encoding_method)
+            
+        return self._content_sub_string_bytes
 
 
 class MashupView():
@@ -26,7 +50,8 @@ class MashupView():
     The string "{{ mashup }}" in the container will be replaced with the content produced
     """
 
-    CONTENT_SUB_STRING = "{{ mashup }}"
+    content_sub_string = CONTENT_SUB_STRING
+    encoding_method = ENCODING_METHOD
 
     def __init__(self, content, **kwargs):
         self.content = content
@@ -36,9 +61,9 @@ class MashupView():
     def content_containment(self, content):
         if hasattr(self, "container") and self.container:
             if isinstance(content, str):
-                return self.container.replace(self.CONTENT_SUB_STRING, content)
+                return self.container.replace(self.content_sub_string, content)
             else:
-                return bytes(self.container, 'utf-8').replace(bytes(self.CONTENT_SUB_STRING, 'utf-8'), content)
+                return bytes(self.container, self.encoding_method).replace(bytes(self.content_sub_string, self.encoding_method), content)
 
         return content
 
@@ -50,7 +75,7 @@ class HTMLView(MashupView):
     Subclasses should define a content attribute: string of HTML
     """
 
-    def dispatch(self, request):
+    def dispatch(self, request, *args, **kwargs):
         return HttpResponse(self.content_containment(self.content))
 
 
@@ -64,8 +89,8 @@ class URLView(MashupView):
     Subclasses should define a content attribute: a url string
     """
 
-    URL_SUB_STRING = "{{ url }}"
-    TOKEN_SUB_STRING = "{{ token }}"
+    url_sub_string = "{{ url }}"
+    token_sub_string = "{{ token }}"
 
     jquery_loader = "$( this_element ).load( this_url );"
     javascript_loader = """
@@ -77,10 +102,10 @@ class URLView(MashupView):
     """
 
     jquery_detector = """
-        <div id='""" + TOKEN_SUB_STRING + """'></div>
+        <div id='""" + token_sub_string + """'></div>
         <script>
-            var this_element = document.getElementById('""" + TOKEN_SUB_STRING + """')
-            var this_url = '""" + URL_SUB_STRING + """'
+            var this_element = document.getElementById('""" + token_sub_string + """')
+            var this_url = '""" + url_sub_string + """'
             if (typeof jQuery !== 'undefined') {
                 %s
             } else {
@@ -89,10 +114,10 @@ class URLView(MashupView):
         </script>
         """
 
-    def dispatch(self, request):
+    def dispatch(self, request, *args, **kwargs):
         response = self.jquery_detector % (self.jquery_loader, self.javascript_loader)
-        response = response.replace(self.TOKEN_SUB_STRING, ''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(TOKEN_LENGTH)))
-        response = response.replace(self.URL_SUB_STRING, self.content)
+        response = response.replace(self.token_sub_string, ''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(TOKEN_LENGTH)))
+        response = response.replace(self.url_sub_string, self.content)
 
         return HttpResponse(self.content_containment(response))
 
@@ -104,8 +129,8 @@ class ViewView(MashupView):
     Subclasses should define a content attribute: a subclass of django's view
     """
 
-    def dispatch(self, request):
-        response = self.content.as_view()(request)
+    def dispatch(self, request, *args, **kwargs):
+        response = self.content.as_view()(request, *args, **kwargs)
         if hasattr(response, "render"):
             response.render()
         response.content = self.content_containment(response.content)
