@@ -92,9 +92,11 @@ Notes
 
 If you find the use of placeholder strings like "{{ mashup }}" uncouth, you can redifine them in a single line in views.py.
 
-django-mashup will be released to PyPI once it has reached a stable version.
+django-mashup is almost certainly not compatible with Python 2.x, due to its handling of bytestrings, but probably could be made compatible with Python 2.x.
 
 Getting Involved
 ================
 
 Feel free to open pull requests or issues. GitHub is the canonical location of this project.
+
+I am particularly interested in other people's thoughts on the most appropriate way to provide view context to the HTMLView, so that it can be rendered with context.
