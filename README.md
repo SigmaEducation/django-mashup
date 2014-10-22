@@ -66,7 +66,7 @@ Each component class takes an optional container keyword argument. Use the a '{{
     class MyMashup(MashUp):
         views = [HTMLView("Use the following form to log in.",
                           container="<div class=explanation>{{ mashup }}</div>"),
-                 URLView(reverse('account:login'),
+                 URLView(reverse('account:login')),
                 ]
 ```
 
@@ -81,7 +81,7 @@ The three component classes may be subclassed with default containers. The follo
     
     class MyMashup(MashUp):
         views = [MyHTMLView("Use the following form to log in."),
-                 URLView(reverse('account:login'),
+                 URLView(reverse('account:login')),
                 ]  
 ```
 
@@ -97,7 +97,7 @@ class MyPaneMashup(Mashup):
 
 ```
 
-Finally, you may define Mashup views and containers by request method: prefix 'views' or 'containers' with the lowercase name of the request method. For example, if your form views respond via Ajax to POST requests, then you do not want your Mashup to attach HTML to the request:
+Finally, you may define Mashup views and containers by request method: prefix 'views' or 'containers' with the lowercase name of the request method. For example, if your form views respond with JSON via Ajax to POST requests, then you do not want your Mashup to attach HTML to the request:
 
 ```
 from mashup.views import Mashup
@@ -114,12 +114,13 @@ class MyFormMashup(Mashup):
     post_views = (MyAjaxFormView,)
     post_containers = ()
 ```
+You may similarly define unique DELETE, PUT, TRACE, etc., views/containers.
 
 Notes
 =====
-If you use a custom jquery or javascript function for loading page content via Ajax, you can specify that function in a subclass of URLView. See views.py.
+If you use a custom jquery or javascript function for loading page content via Ajax, you can specify that function by providing your own /templates/mashup/js_jquery_ajax_loader.html.
 
-If you find the use of placeholder strings like "{{ mashup }}" uncouth, you can redifine them in a single line in views.py.
+If you find the use of the placeholder string "{{ mashup }}" uncouth, you can redifine it in a single line in views.py.
 
 django-mashup is almost certainly not compatible with Python 2.x, due to its handling of bytestrings, but probably could be made compatible with Python 2.x.
 
