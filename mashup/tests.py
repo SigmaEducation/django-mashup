@@ -1,17 +1,23 @@
 from django.test import TestCase
+from django.template.loader import get_template
+from django.template import Context
 
 from .views import Mashup, HTMLView, ViewView, URLView, TOKEN_LENGTH
 
 
-class DummyGetRequest():
+class DummyRequest(object):
+    user = ""
+
+
+class DummyGetRequest(DummyRequest):
     method = "GET"
 
 
-class DummyPostRequest():
+class DummyPostRequest(DummyRequest):
     method = "POST"
 
 
-class DummyDeleteRequest():
+class DummyDeleteRequest(DummyRequest):
     method = "DELETE"
 
 
@@ -80,11 +86,14 @@ class MashupViewTests(TestCase):
 
         target_length = 0
         for view in MyThirdMashup.views:
-            expected_content = view.jquery_detector % (view.jquery_loader, view.javascript_loader)
-            expected_content = expected_content.replace(URLView.token_sub_string, dummy_token)
-            expected_content = expected_content .replace(URLView.url_sub_string, view.content)
+            this_template = get_template(view.template_name)
 
-            target_length += len(expected_content)
+            context = Context({
+                "url": view.content,
+                "token": dummy_token
+            })
+
+            target_length += len(this_template.render(context))
 
             if hasattr(view, "container") and view.container:
                 target_length += len(view.container.replace(view.content_sub_string, ""))

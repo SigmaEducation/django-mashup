@@ -3,11 +3,15 @@ import random
 from itertools import zip_longest
 
 from django.views.generic import View
+from django.views.generic.base import TemplateView
 from django.http import HttpResponse
 
 TOKEN_LENGTH = 20
 CONTENT_SUB_STRING = "{{ mashup }}"
 ENCODING_METHOD = 'utf-8'
+
+JS_JQUERY_AJAX_LOADER_TEMPLATE_NAME = "mashup/js_jquery_ajax_loader.html"
+
 
 class Mashup(View):
 
@@ -41,7 +45,7 @@ class Mashup(View):
         return self._content_sub_string_bytes
 
 
-class MashupView():
+class MashupView(object):
     """
     Parent class for component views of a Mashup
 
@@ -79,47 +83,32 @@ class HTMLView(MashupView):
         return HttpResponse(self.content_containment(self.content))
 
 
-class URLView(MashupView):
+class URLView(MashupView, TemplateView):
     """
     Mashup component for loading a url via ajax
     Tries to use jquery's load()
     Will use a javascript alternative if jquery is unavailable
     Confirm that this works on your target clients
+    Replace the default js/jquery loader by providing your own mashup/js_jquery_ajax_loader.html template
 
     Subclasses should define a content attribute: a url string
     """
 
-    url_sub_string = "{{ url }}"
-    token_sub_string = "{{ token }}"
+    template_name = JS_JQUERY_AJAX_LOADER_TEMPLATE_NAME
 
-    jquery_loader = "$( this_element ).load( this_url );"
-    javascript_loader = """
-    req = new XMLHttpRequest();
-    req.open("GET", this_url, false);
-    req.send(null);
+    def get_context_data(self, **kwargs):
+        context = super(URLView, self).get_context_data(**kwargs)
+        context["token"] = ''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(TOKEN_LENGTH))
+        context["url"] = self.content
 
-    this_element.innerHTML = req.responseText;
-    """
-
-    jquery_detector = """
-        <div id='""" + token_sub_string + """'></div>
-        <script>
-            var this_element = document.getElementById('""" + token_sub_string + """')
-            var this_url = '""" + url_sub_string + """'
-            if (typeof jQuery !== 'undefined') {
-                %s
-            } else {
-                %s
-            }
-        </script>
-        """
+        return context
 
     def dispatch(self, request, *args, **kwargs):
-        response = self.jquery_detector % (self.jquery_loader, self.javascript_loader)
-        response = response.replace(self.token_sub_string, ''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(TOKEN_LENGTH)))
-        response = response.replace(self.url_sub_string, self.content)
+        self.request = request
+        response = super(URLView, self).dispatch(request, *args, **kwargs)
+        response.render()
 
-        return HttpResponse(self.content_containment(response))
+        return HttpResponse(self.content_containment(response.content))
 
 
 class ViewView(MashupView):

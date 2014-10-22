@@ -1,0 +1,14 @@
+<div id='{{ token }}'></div>
+<script>
+    var this_element = document.getElementById('{{ token }}')
+    var this_url = '{{ url }}'
+    if (typeof jQuery !== 'undefined') {
+        $( this_element ).load( this_url );
+    } else {
+        req = new XMLHttpRequest();
+        req.open("GET", this_url, false);
+        req.send(null);
+
+        this_element.innerHTML = req.responseText;
+    }
+</script>
