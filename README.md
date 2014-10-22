@@ -38,7 +38,7 @@ Example:
     
     class MyMashup(MashUp):
         views = [HTMLView("Use the following form to log in."),
-                 URLView(reverse('account:login'),
+                 URLView(reverse('account:login')),
                 ]
 ```
 
@@ -85,10 +85,39 @@ The three component classes may be subclassed with default containers. The follo
                 ]  
 ```
 
-Also, URLView may be subclassed with custom javascript/jquery loading strings.
+The Mashup class may also be given default containers. Here's an abstract subclass of Mashup which takes two views and wraps them in the the divs #left-pane and #right-pane. Any Mashups which inherit from this Mashup will have their views contained in those divs:
+
+```
+from mashup.views import MashUp
+
+class MyPaneMashup(Mashup):
+    containers = ('<div id=right-pane>{{ mashup }}</div>',
+                  '<div id=left-pane>{{ mashup }}</div>',
+                 )
+
+```
+
+Finally, you may define Mashup views and containers by request method: prefix 'views' or 'containers' with the lowercase name of the request method. For example, if your form views respond via Ajax to POST requests, then you do not want your Mashup to attach HTML to the request:
+
+```
+from mashup.views import Mashup
+
+...
+
+class MyFormMashup(Mashup):
+    get_views = (MyAjaxFormView,
+                 HTMLView("<p>Words words words.</p>", container="<span class=instructions>{{ mashup }}</span>"),
+                )
+    get_containers = ('<div id=right-pane>{{ mashup }}</div>',
+                      '<div id=left-pane>{{ mashup }}</div>',)
+                      
+    post_views = (MyAjaxFormView,)
+    post_containers = ()
+```
 
 Notes
 =====
+If you use a custom jquery or javascript function for loading page content via Ajax, you can specify that function in a subclass of URLView. See views.py.
 
 If you find the use of placeholder strings like "{{ mashup }}" uncouth, you can redifine them in a single line in views.py.
 
