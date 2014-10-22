@@ -38,7 +38,7 @@ Example:
     
     class MyMashup(MashUp):
         views = [HTMLView("Use the following form to log in."),
-                 URLView(reverse('account:login'),
+                 URLView(reverse('account:login')),
                 ]
 ```
 
