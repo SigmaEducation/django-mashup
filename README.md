@@ -1,7 +1,7 @@
 django-mashup
 =============
 
-django-mashup is a view masher for the Django Framework. Combine multiple views, strings of HTML, and/or ajax loaded urls into a single view
+django-mashup is a view masher for the Django Framework. Combine multiple views, strings of HTML, and/or Ajax loaded urls into a single view
 
 Installation
 ===============
