@@ -72,9 +72,8 @@ Each component class takes an optional container keyword argument. This should b
                           container="<div class=explanation>{{ mashup }}</div>"),
                           URLView(reverse('account:login')),
                 
-    .
-    .
-    .
+    ...
+    
     # my_app/my_template.html
     
     <div class=explanation>{{ mashup|safe }}</div>
@@ -105,15 +104,13 @@ The Mashup class may also be given default containers. Here's an abstract subcla
                       'my_app/my_left_pane.html',
                      )
                      
-    .
-    .
-    .
+    ...
+    
     # my_app/my_right_pane.html
     
     <div id=right-pane>{{ mashup|safe }}</div>
-    .
-    .
-    .
+    
+    ...
     
     # my_app/my_left_pane.html
     
