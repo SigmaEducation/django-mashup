@@ -5,10 +5,10 @@ from itertools import zip_longest
 from django.views.generic import View
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
+from django.shortcuts import render
 
 TOKEN_LENGTH = 20
-CONTENT_SUB_STRING = "{{ mashup }}"
-ENCODING_METHOD = 'utf-8'
+MASHUP_CONTEXT_VARIABLE_NAME = "mashup"
 
 JS_JQUERY_AJAX_LOADER_TEMPLATE_NAME = "mashup/js_jquery_ajax_loader.html"
 
@@ -17,9 +17,6 @@ class Mashup(View):
 
     containers = ()
     views = ()
-    
-    encoding_method = ENCODING_METHOD
-    content_sub_string = CONTENT_SUB_STRING
 
     def dispatch(self, request, *args, **kwargs):
         response = b""
@@ -32,17 +29,10 @@ class Mashup(View):
         for view, container in zip_longest(these_views, these_containers, fillvalue=None):
             this_response = view.dispatch(request, *args, **kwargs).content
             if container:
-                this_response = bytes(container, 'utf-8').replace(self.content_sub_string_bytes, this_response)
+                this_response = render(request, container, {"mashup": this_response}).content
             response += this_response
 
         return HttpResponse(response)
-    
-    @property
-    def content_sub_string_bytes(self):
-        if not hasattr(self, "_content_sub_string_bytes"):
-            self._content_sub_string_bytes = bytes(self.content_sub_string, self.encoding_method)
-            
-        return self._content_sub_string_bytes
 
 
 class MashupView(object):
@@ -54,20 +44,15 @@ class MashupView(object):
     The string "{{ mashup }}" in the container will be replaced with the content produced
     """
 
-    content_sub_string = CONTENT_SUB_STRING
-    encoding_method = ENCODING_METHOD
-
     def __init__(self, content, **kwargs):
         self.content = content
         if "container" in kwargs:
             self.container = kwargs["container"]
 
-    def content_containment(self, content):
+    def content_containment(self, request, content):
         if hasattr(self, "container") and self.container:
-            if isinstance(content, str):
-                return self.container.replace(self.content_sub_string, content)
-            else:
-                return bytes(self.container, self.encoding_method).replace(bytes(self.content_sub_string, self.encoding_method), content)
+
+            content = render(request, self.container, {MASHUP_CONTEXT_VARIABLE_NAME: content})
 
         return content
 
@@ -80,7 +65,7 @@ class HTMLView(MashupView):
     """
 
     def dispatch(self, request, *args, **kwargs):
-        return HttpResponse(self.content_containment(self.content))
+        return HttpResponse(self.content_containment(request, self.content))
 
 
 class URLView(MashupView, TemplateView):
@@ -108,7 +93,7 @@ class URLView(MashupView, TemplateView):
         response = super(URLView, self).dispatch(request, *args, **kwargs)
         response.render()
 
-        return HttpResponse(self.content_containment(response.content))
+        return HttpResponse(self.content_containment(request, response.content))
 
 
 class ViewView(MashupView):
@@ -122,5 +107,5 @@ class ViewView(MashupView):
         response = self.content.as_view()(request, *args, **kwargs)
         if hasattr(response, "render"):
             response.render()
-        response.content = self.content_containment(response.content)
+        response.content = self.content_containment(request, response.content)
         return response

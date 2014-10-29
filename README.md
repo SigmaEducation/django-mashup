@@ -57,7 +57,7 @@ Here's an example that mashes a view with HTML:
                 ]
 ```
 
-Each component class takes an optional container keyword argument. Use the a '{{ mashup }}' to specify where the content should be placed:
+Each component class takes an optional container keyword argument. This should be a template name. Use '{{ mashup|safe }}' to specify where the content should be placed:
 
 ``` 
     from django.core.urlresolvers import reverse
@@ -65,9 +65,16 @@ Each component class takes an optional container keyword argument. Use the a '{{
     
     class MyMashup(MashUp):
         views = [HTMLView("Use the following form to log in.",
-                          container="<div class=explanation>{{ mashup }}</div>"),
+                          container="my_app/my_template.html"),
                  URLView(reverse('account:login'),
                 ]
+                
+    .
+    .
+    .
+    # my_app/my_template.html
+    
+    <div class=explanation>{{ mashup|safe }}</div>
 ```
 
 The three component classes may be subclassed with default containers. The following MyMashup class will produce the same response as the one above:
@@ -77,7 +84,7 @@ The three component classes may be subclassed with default containers. The follo
     from mashup.views import MashUp, URLView, HTMLView
     
     class MyHTMLView(HTMLView):
-        container = "<div class=explanation>{{ mashup }}</div>"
+        container = "my_app/my_template.html"
     
     class MyMashup(MashUp):
         views = [MyHTMLView("Use the following form to log in."),
@@ -88,12 +95,26 @@ The three component classes may be subclassed with default containers. The follo
 The Mashup class may also be given default containers. Here's an abstract subclass of Mashup which takes two views and wraps them in the the divs #left-pane and #right-pane. Any Mashups which inherit from this Mashup will have their views contained in those divs:
 
 ```
-from mashup.views import MashUp
-
-class MyPaneMashup(Mashup):
-    containers = ('<div id=right-pane>{{ mashup }}</div>',
-                  '<div id=left-pane>{{ mashup }}</div>',
-                 )
+    from mashup.views import MashUp
+    
+    class MyPaneMashup(Mashup):
+        containers = ('my_app/my_right_pane.html',
+                      'my_app/my_left_pane.html',
+                     )
+                     
+    .
+    .
+    .
+    # my_app/my_right_pane.html
+    
+    <div id=right-pane>{{ mashup|safe }}</div>
+    .
+    .
+    .
+    
+    # my_app/my_left_pane.html
+    
+    <div id=right-pane>{{ mashup|safe }}</div>
 
 ```
 
@@ -106,10 +127,10 @@ from mashup.views import Mashup
 
 class MyFormMashup(Mashup):
     get_views = (MyAjaxFormView,
-                 HTMLView("<p>Words words words.</p>", container="<span class=instructions>{{ mashup }}</span>"),
+                 HTMLView("<p>Words words words.</p>", container="my_app/my_template.html"),
                 )
-    get_containers = ('<div id=right-pane>{{ mashup }}</div>',
-                      '<div id=left-pane>{{ mashup }}</div>',)
+    get_containers = ('my_app/my_right_pane.html',
+                      'my_app/my_right_pane.html',)
                       
     post_views = (MyAjaxFormView,)
     post_containers = ()

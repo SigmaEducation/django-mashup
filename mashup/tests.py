@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.template.loader import get_template
-from django.template import Context
+from django.template import Context, Template
 
 from .views import Mashup, HTMLView, ViewView, URLView, TOKEN_LENGTH
 
@@ -22,32 +22,32 @@ class DummyDeleteRequest(DummyRequest):
 
 
 class MyMashup(Mashup):
-    views = [HTMLView("<p>This is a bunch of html<p>", container="<div class='first-mash'>" + HTMLView.content_sub_string + "</div>"),
-             HTMLView("<p>This is another bunch of html</p>", container="<div class='second-mash'>" + HTMLView.content_sub_string + "</div>"),
+    views = [HTMLView("<p>This is a bunch of html<p>", container="mashup/test/first_test_container.html"),
+             HTMLView("<p>This is another bunch of html</p>", container="mashup/test/second_test_container.html"),
              ]
 
 
 class MySecondMashup(Mashup):
-    views = [ViewView(MyMashup, container="<div class='big-mash-container'>" + ViewView.content_sub_string + "</div>"),
+    views = [ViewView(MyMashup, container="mashup/test/third_test_container.html"),
              HTMLView("<p>A third bunch of HTML</p>"),
              ]
 
 
 class MyThirdMashup(Mashup):
 
-    views = [URLView("/testing/url", container="<div class='big-mash-container'>" + URLView.content_sub_string + "</div>"),
+    views = [URLView("/testing/url", container="mashup/test/third_test_container.html"),
              URLView("/test/url"),
              ]
 
 
 class MyMashupContained(MyMashup):
-    containers = ("<div id=first-view-container>{{ mashup }}</div>",
-                  "<div id=second-view-container>{{ mashup }}</div>")
+    containers = ("mashup/test/fourth_test_container.html",
+                  "mashup/test/fifth_test_container.html",)
 
 
 class MySecondMashupContained(MySecondMashup):
-    containers = ("<div id=first-second-view-container>{{ mashup }}</div>",
-                  "<div id=second-second-view-container>{{ mashup }}</div>")
+    containers = ("mashup/test/sixth_test_container.html",
+                  "mashup/test/seventh_test_container.html")
 
 
 class MyGetPostMashup(Mashup):
@@ -66,7 +66,8 @@ class MyGetPostMashupContained(Mashup):
 class MashupViewTests(TestCase):
 
     def test_html_view_mashing(self):
-
+        # print(MyMashup.as_view()(DummyGetRequest()).content)
+        #                  b"<div class='first-mash'><p>This is a bunch of html<p></div><div class='first-mash'><p>This is another bunch of html</p></div>"
         # Assert that MyMashup gives the expected response
         self.assertEqual(MyMashup.as_view()(DummyGetRequest()).content,
                          b"<div class='first-mash'><p>This is a bunch of html<p></div><div class='second-mash'><p>This is another bunch of html</p></div>")
@@ -96,7 +97,7 @@ class MashupViewTests(TestCase):
             target_length += len(this_template.render(context))
 
             if hasattr(view, "container") and view.container:
-                target_length += len(view.container.replace(view.content_sub_string, ""))
+                target_length += len(get_template(view.container).render(Context()))
 
         # Assert that the response has the correct length
         self.assertEqual(len(MyThirdMashup.as_view()(DummyGetRequest()).content), target_length)
