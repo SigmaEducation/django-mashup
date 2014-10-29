@@ -141,8 +141,6 @@ Notes
 =====
 If you use a custom jquery or javascript function for loading page content via Ajax, you can specify that function by providing your own /templates/mashup/js_jquery_ajax_loader.html.
 
-If you find the use of the placeholder string "{{ mashup }}" uncouth, you can redifine it in a single line in views.py.
-
 django-mashup is almost certainly not compatible with Python 2.x, due to its handling of bytestrings, but probably could be made compatible with Python 2.x.
 
 Getting Involved
