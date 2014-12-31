@@ -147,7 +147,6 @@ You may similarly define unique DELETE, PUT, TRACE, etc., views/containers.
 Compatibility
 =============
 
-* Django Rest Framework 3.0.1
 * Django 1.7
 * Python 2.7, 3.4
 
