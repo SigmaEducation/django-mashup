@@ -11,11 +11,11 @@ Define different combinations of views and/or containers for different request t
 Installation
 ===============
 
-Install the module in your Python distribution or virtualenv::
+Install the module in your Python distribution or virtualenv:
 
     $ pip install django-mashup
 
-Add the application to your `INSTALLED_APPS`::
+Add the application to your `INSTALLED_APPS`:
 
 ```
   INSTALLED_APPS = (...
@@ -41,10 +41,12 @@ Example:
     from django.core.urlresolvers import reverse
     from mashup.views import MashUp, URLMash, TemplateMash
     
+    
     class MyMashup(MashUp):
         views = [TemplateMash("my_app/my_login_instructions.html"),
                  URLMash(reverse('account:login')),
                 ]
+                
                 
     # my_app/my_login_instructions.html
     
@@ -57,8 +59,10 @@ Here's an example that mashes a view with HTML:
     from django.views.generic.edit import FormView
     from mashup.views import MashUp, TemplateMash, ViewMash
     
+    
     class MyFormView(FormView):
         ...
+    
     
     class MyMashup(MashUp):
         views = [TemplateMash("my_app/my_login_instructions.html"),
@@ -72,12 +76,14 @@ Each component class takes an optional container keyword argument. This should b
     from django.core.urlresolvers import reverse
     from mashup.views import MashUp, URLMash, TemplateMash
     
+    
     class MyMashup(MashUp):
         views = [TemplateMash("my_app/my_login_instructions.html",
                               container="my_app/my_template.html"),
                  URLMash(reverse('account:login')),
                 
     ...
+    
     
     # my_app/my_template.html
     
@@ -90,8 +96,10 @@ The three component classes may be subclassed with default containers. The follo
     from django.core.urlresolvers import reverse
     from mashup.views import MashUp, URLMash, TemplateMash
     
+    
     class MyTemplateMash(TemplateMash):
         container = "my_app/my_template.html"
+    
     
     class MyMashup(MashUp):
         views = [MyTemplateMash("my_app/my_login_instructions.html"),
@@ -104,6 +112,7 @@ The Mashup class may also be given default containers. Here's an abstract subcla
 ```
     from mashup.views import MashUp
     
+    
     class MyPaneMashup(Mashup):
         containers = ('my_app/my_right_pane.html',
                       'my_app/my_left_pane.html',
@@ -111,11 +120,13 @@ The Mashup class may also be given default containers. Here's an abstract subcla
                      
     ...
     
+    
     # my_app/my_right_pane.html
     
     <div id=right-pane>{{ mashup|safe }}</div>
     
     ...
+    
     
     # my_app/my_left_pane.html
     
