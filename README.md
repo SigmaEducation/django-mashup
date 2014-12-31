@@ -69,7 +69,7 @@ Each component class takes an optional container keyword argument. This should b
     
     class MyMashup(MashUp):
         views = [HTMLView("Use the following form to log in.",
-                          container="<div class=explanation>{{ mashup }}</div>"),
+                          container="my_app/my_template.html"),
                           URLView(reverse('account:login')),
                 
     ...
@@ -147,5 +147,3 @@ Getting Involved
 ================
 
 Feel free to open pull requests or issues. GitHub is the canonical location of this project.
-
-I am particularly interested in other people's thoughts on the most appropriate way to provide view context to the HTMLView, so that it can be rendered with context.
