@@ -1,3 +1,4 @@
+[![Downloads](https://pypip.in/download/django-mashup/badge.svg)](https://pypi.python.org/pypi/django-mashup/)
 django-mashup
 =============
 
