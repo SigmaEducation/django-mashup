@@ -137,11 +137,17 @@ class MyFormMashup(Mashup):
 ```
 You may similarly define unique DELETE, PUT, TRACE, etc., views/containers.
 
+Compatibility
+=============
+
+* Django Rest Framework 3.0.1
+* Django 1.7
+* Python 2.7, 3.4
+
 Notes
 =====
 If you use a custom jquery or javascript function for loading page content via Ajax, you can specify that function by providing your own /templates/mashup/js_jquery_ajax_loader.html.
 
-django-mashup is almost certainly not compatible with Python 2.x, due to its handling of bytestrings, but probably could be made compatible with Python 2.x.
 
 Getting Involved
 ================

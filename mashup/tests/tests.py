@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.template.loader import get_template
 from django.template import Context, Template
 
-from .views import Mashup, HTMLView, ViewView, URLView, TOKEN_LENGTH
+from mashup.views import Mashup, HTMLView, ViewView, URLView, TOKEN_LENGTH
 
 
 class DummyRequest(object):

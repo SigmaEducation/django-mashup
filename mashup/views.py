@@ -1,6 +1,12 @@
 import string
 import random
-from itertools import zip_longest
+
+try:
+    # Python 2
+    from itertools import izip_longest as zip_longest
+except ImportError:
+    # Python 3
+    from itertools import zip_longest
 
 from django.views.generic import View
 from django.views.generic.base import TemplateView
