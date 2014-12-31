@@ -12,7 +12,7 @@ Installation
 
 Install the module in your Python distribution or virtualenv::
 
-    $ pip install git+https://github.com/SigmaEducation/django-mashup.git
+    $ pip install django-mashup
 
 Add the application to your `INSTALLED_APPS`::
 
