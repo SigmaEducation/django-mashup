@@ -9,6 +9,8 @@ except ImportError:
     from itertools import zip_longest
 
 from django.views.generic import View
+from django.template.loader import get_template
+from django.template import Context
 from django.views.generic.base import TemplateView
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -63,18 +65,18 @@ class MashupView(object):
         return content
 
 
-class HTMLView(MashupView):
+class TemplateMash(MashupView):
     """
-    Mashup component for viewing raw html
+    Mashup component for viewing a template
 
-    Subclasses should define a content attribute: string of HTML
+    Subclasses should define a content attribute: a template path
     """
 
     def dispatch(self, request, *args, **kwargs):
-        return HttpResponse(self.content_containment(request, self.content))
+        return HttpResponse(self.content_containment(request, get_template(self.content).render(Context())))
 
 
-class URLView(MashupView, TemplateView):
+class URLMash(MashupView, TemplateView):
     """
     Mashup component for loading a url via ajax
     Tries to use jquery's load()
@@ -88,7 +90,7 @@ class URLView(MashupView, TemplateView):
     template_name = JS_JQUERY_AJAX_LOADER_TEMPLATE_NAME
 
     def get_context_data(self, **kwargs):
-        context = super(URLView, self).get_context_data(**kwargs)
+        context = super(URLMash, self).get_context_data(**kwargs)
         context["token"] = ''.join(random.choice(string.ascii_lowercase+string.digits) for _ in range(TOKEN_LENGTH))
         context["url"] = self.content
 
@@ -96,13 +98,13 @@ class URLView(MashupView, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.request = request
-        response = super(URLView, self).dispatch(request, *args, **kwargs)
+        response = super(URLMash, self).dispatch(request, *args, **kwargs)
         response.render()
 
         return HttpResponse(self.content_containment(request, response.content))
 
 
-class ViewView(MashupView):
+class ViewMash(MashupView):
     """
     Mashup component for viewing a view
 

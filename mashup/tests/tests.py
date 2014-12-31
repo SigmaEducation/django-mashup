@@ -1,12 +1,13 @@
 from django.test import TestCase
 from django.template.loader import get_template
-from django.template import Context, Template
+from django.template import Context
 
-from mashup.views import Mashup, HTMLView, ViewView, URLView, TOKEN_LENGTH
+from mashup.views import Mashup, ViewMash, URLMash, TOKEN_LENGTH, TemplateMash
 
 
 class DummyRequest(object):
     user = ""
+    path = "/"
 
 
 class DummyGetRequest(DummyRequest):
@@ -22,21 +23,23 @@ class DummyDeleteRequest(DummyRequest):
 
 
 class MyMashup(Mashup):
-    views = [HTMLView("<p>This is a bunch of html<p>", container="mashup/test/first_test_container.html"),
-             HTMLView("<p>This is another bunch of html</p>", container="mashup/test/second_test_container.html"),
+    views = [TemplateMash("mashup/test/first_test_content.html",
+                          container="mashup/test/first_test_container.html"),
+             TemplateMash("mashup/test/second_test_content.html",
+                          container="mashup/test/second_test_container.html"),
              ]
 
 
 class MySecondMashup(Mashup):
-    views = [ViewView(MyMashup, container="mashup/test/third_test_container.html"),
-             HTMLView("<p>A third bunch of HTML</p>"),
+    views = [ViewMash(MyMashup, container="mashup/test/third_test_container.html"),
+             TemplateMash("mashup/test/third_test_content.html"),
              ]
 
 
 class MyThirdMashup(Mashup):
 
-    views = [URLView("/testing/url", container="mashup/test/third_test_container.html"),
-             URLView("/test/url"),
+    views = [URLMash("/testing/url", container="mashup/test/third_test_container.html"),
+             URLMash("/test/url"),
              ]
 
 
@@ -65,16 +68,14 @@ class MyGetPostMashupContained(Mashup):
 
 class MashupViewTests(TestCase):
 
-    def test_html_view_mashing(self):
-        # print(MyMashup.as_view()(DummyGetRequest()).content)
-        #                  b"<div class='first-mash'><p>This is a bunch of html<p></div><div class='first-mash'><p>This is another bunch of html</p></div>"
+    def test_template_mashing(self):
         # Assert that MyMashup gives the expected response
         self.assertEqual(MyMashup.as_view()(DummyGetRequest()).content,
                          b"<div class='first-mash'><p>This is a bunch of html<p></div><div class='second-mash'><p>This is another bunch of html</p></div>")
 
     def test_view_view_mashing(self):
-        # This test might fail because of a failure in HTMLView
-        # If both this test and test_html_view_mashing fails, address test_html_view_mashing first
+        # This test might fail because of a failure in TemplateMash
+        # If both this test and test_template_mashing fails, address test_template_mashing first
 
         # Assert that MySecondMashup gives the expected response.
         self.assertEqual(MySecondMashup.as_view()(DummyGetRequest()).content,
@@ -107,19 +108,19 @@ class MashupComponentInitTests(TestCase):
 
     def test_container_subclassing(self):
 
-        class MyHTMLView(HTMLView):
+        class MyTemplateMash(TemplateMash):
             container = "test_container"
 
-        htmlview = HTMLView("some content")
-        myhtmlview = MyHTMLView("some content")
-        mysecondhtmlview = MyHTMLView("some content", container="test_container_2")
+        templatemash = TemplateMash("some content")
+        mytemplatemash = MyTemplateMash("some content")
+        mysecondtemplatemash = MyTemplateMash("some content", container="test_container_2")
 
-        # Assert that the instance of HTMLView has no container
-        self.assertTrue((not hasattr(htmlview, "container")) or (not htmlview.container))
-        # Assert that the first instance of MyHTMLView has the container we gave it.
-        self.assertEqual(myhtmlview.container, "test_container")
-        # Assert that the second instance of MyHTMLView has the container we gave it.
-        self.assertEqual(mysecondhtmlview.container, "test_container_2")
+        # Assert that the instance of TemplateMash has no container
+        self.assertTrue((not hasattr(templatemash, "container")) or (not templatemash.container))
+        # Assert that the first instance of MyTemplateMash has the container we gave it.
+        self.assertEqual(mytemplatemash.container, "test_container")
+        # Assert that the second instance of MyTemplateMash has the container we gave it.
+        self.assertEqual(mysecondtemplatemash.container, "test_container_2")
 
     def test_mashup_containers(self):
 

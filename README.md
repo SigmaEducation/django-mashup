@@ -1,9 +1,9 @@
 django-mashup
 =============
 
-django-mashup is a view masher for the Django Framework. Combine multiple views, strings of HTML, and/or Ajax loaded urls into a single class-based view.
+django-mashup is a view masher for the Django Framework. Combine multiple views, templates, and/or Ajax loaded urls into a single class-based view.
 
-Wrap those views in html containers.
+Wrap those views in template-based containers.
 
 Define different combinations of views and/or containers for different request types.
 
@@ -32,32 +32,36 @@ django-mashup provides one view class:
     
 and three component classes:
 
-    from mashup.views import URLView, HTMLView, ViewView
+    from mashup.views import URLMash, TemplateMash, ViewMash
     
 Example:
 
 ``` 
     from django.core.urlresolvers import reverse
-    from mashup.views import MashUp, URLView, HTMLView
+    from mashup.views import MashUp, URLMash, TemplateMash
     
     class MyMashup(MashUp):
-        views = [HTMLView("Use the following form to log in."),
-                 URLView(reverse('account:login')),
+        views = [TemplateMash("my_app/my_login_instructions.html"),
+                 URLMash(reverse('account:login')),
                 ]
+                
+    # my_app/my_login_instructions.html
+    
+    <p>Use the following form to log in.</p>
 ```
 
 Here's an example that mashes a view with HTML:
 
 ``` 
-    from django.views.generic.base import TemplateView
-    from mashup.views import MashUp, HTMLView, ViewView
+    from django.views.generic.edit import FormView
+    from mashup.views import MashUp, TemplateMash, ViewMash
     
-    class MyTemplateView(TemplateView):
-        template_name = 'cool_stuff.html'
+    class MyFormView(FormView):
+        ...
     
     class MyMashup(MashUp):
-        views = [HTMLView('Use the following form to log in.'),
-                 ViewView(MyTemplateView),
+        views = [TemplateMash("my_app/my_login_instructions.html"),
+                 ViewMash(MyFormView),
                 ]
 ```
 
@@ -65,12 +69,12 @@ Each component class takes an optional container keyword argument. This should b
 
 ``` 
     from django.core.urlresolvers import reverse
-    from mashup.views import MashUp, URLView, HTMLView
+    from mashup.views import MashUp, URLMash, TemplateMash
     
     class MyMashup(MashUp):
-        views = [HTMLView("Use the following form to log in.",
-                          container="my_app/my_template.html"),
-                          URLView(reverse('account:login')),
+        views = [TemplateMash("my_app/my_login_instructions.html",
+                              container="my_app/my_template.html"),
+                 URLMash(reverse('account:login')),
                 
     ...
     
@@ -83,14 +87,14 @@ The three component classes may be subclassed with default containers. The follo
 
 ```
     from django.core.urlresolvers import reverse
-    from mashup.views import MashUp, URLView, HTMLView
+    from mashup.views import MashUp, URLMash, TemplateMash
     
-    class MyHTMLView(HTMLView):
+    class MyTemplateMash(TemplateMash):
         container = "my_app/my_template.html"
     
     class MyMashup(MashUp):
-        views = [MyHTMLView("Use the following form to log in."),
-                 URLView(reverse('account:login')),
+        views = [MyTemplateMash("my_app/my_login_instructions.html"),
+                 URLMash(reverse('account:login')),
                 ]  
 ```
 
@@ -118,16 +122,19 @@ The Mashup class may also be given default containers. Here's an abstract subcla
 
 ```
 
-Finally, you may define Mashup views and containers by request method: prefix 'views' or 'containers' with the lowercase name of the request method. For example, if your form views respond with JSON via Ajax to POST requests, then you do not want your Mashup to attach HTML to the request:
+Finally, you may define Mashup views and containers by request method: prefix 'views' or 'containers' with the lowercase name of the request method.
+
+For example, your form views might respond with HTML to GET requests and JSON to POST requests; in this case you do not want your Mashup to attach HTML containers and content to POST response:
 
 ```
-from mashup.views import Mashup
+from mashup.views import Mashup, TemplateMash
 
-...
+from myapp.views import MyAjaxFormView
+
 
 class MyFormMashup(Mashup):
     get_views = (MyAjaxFormView,
-                 HTMLView("<p>Words words words.</p>", container="my_app/my_template.html"),
+                 TemplateMash("my_app/my_login_instructions.html", container="my_app/my_template.html"),
                 )
     get_containers = ('my_app/my_right_pane.html',
                       'my_app/my_right_pane.html',)
