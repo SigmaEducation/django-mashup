@@ -13,10 +13,10 @@ setup(
     packages=['mashup'],
     include_package_data=True,
     license='GNU General Public License v3 (GPLv3)',
-    description='Combine multiple views, strings of HTML, and/or ajax loaded urls into a single view.',
+    description='Combine multiple views, templates, and/or Ajax loaded urls into a single view.',
     long_description=README,
     install_requires=[
-        'django>=1.6',
+        'django>=1.7',
     ],
     url='http://www.sigmaeducation.com/',
     author='Sigma Education',
